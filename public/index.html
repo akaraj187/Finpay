@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FinPay — The campus wallet that pays you back</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b1a; --bg2:#0d1330; --card:rgba(255,255,255,.055); --card-b:rgba(255,255,255,.1);
+  --text:#eef1ff; --muted:#98a2c8; --accent:#7c5cff; --accent2:#22d3ee; --mint:#34d399; --pink:#f472b6; --amber:#fbbf24; --danger:#fb7185;
+  --grad:linear-gradient(135deg,#7c5cff 0%,#22d3ee 100%);
+  --radius:22px; --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(60rem 40rem at 10% -10%,rgba(124,92,255,.35),transparent 60%),
+  radial-gradient(50rem 40rem at 100% 10%,rgba(34,211,238,.22),transparent 60%),
+  radial-gradient(40rem 30rem at 50% 110%,rgba(244,114,182,.18),transparent 60%),var(--bg)}
+.grid-bg{position:fixed;inset:0;z-index:-1;opacity:.35;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse at 50% 20%,#000 20%,transparent 75%)}
+.blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.35;z-index:-1;animation:float 18s ease-in-out infinite}
+.b1{width:340px;height:340px;background:#7c5cff;top:8%;left:-80px}
+.b2{width:300px;height:300px;background:#22d3ee;bottom:5%;right:-60px;animation-delay:-7s}
+@keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-50px)}}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:0;color:inherit}
+.container{max-width:1180px;margin:0 auto;padding:0 24px}
+.hidden{display:none!important}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(18px);background:rgba(7,11,26,.6);border-bottom:1px solid var(--card-b)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:70px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.5px}
+.logo i{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;font-style:normal;box-shadow:0 8px 24px rgba(124,92,255,.45)}
+.nav-links{display:flex;gap:30px;color:var(--muted);font-weight:500;font-size:15px}
+.nav-links a:hover{color:#fff}
+.nav-right{display:flex;gap:10px;align-items:center}
+.btn{padding:12px 22px;border-radius:14px;font-weight:700;font-size:15px;transition:.25s;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn-primary{background:var(--grad);color:#06091a;box-shadow:0 10px 30px rgba(124,92,255,.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(34,211,238,.35)}
+.btn-ghost{background:var(--card);border:1px solid var(--card-b)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-lg{padding:16px 30px;font-size:17px;border-radius:16px}
+
+/* hero */
+.hero{padding:90px 0 70px;display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:99px;background:rgba(124,92,255,.15);border:1px solid rgba(124,92,255,.4);font-size:13px;font-weight:600;color:#c7bcff}
+.pill b{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint)}
+h1{font-size:clamp(40px,6vw,70px);line-height:1.04;letter-spacing:-2.5px;font-weight:800;margin:22px 0}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:19px;color:var(--muted);line-height:1.65;max-width:520px}
+.cta{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+.stats{display:flex;gap:36px;margin-top:46px}
+.stats div b{display:block;font-size:28px;font-weight:800;letter-spacing:-1px}
+.stats div span{color:var(--muted);font-size:13px}
+
+/* credit card */
+.card-stage{position:relative;height:430px;perspective:1200px}
+.fcard{position:absolute;width:390px;max-width:92%;height:235px;border-radius:26px;padding:28px;left:50%;top:50%;
+  background:linear-gradient(135deg,#7c5cff,#4f46e5 45%,#0ea5e9);box-shadow:0 40px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.35);overflow:hidden}
+.fcard::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 0%,rgba(255,255,255,.35),transparent 50%)}
+.fcard.c1{transform:translate(-50%,-50%) rotateX(8deg) rotateY(-14deg) rotateZ(-4deg);animation:bob 6s ease-in-out infinite}
+.fcard.c2{background:linear-gradient(135deg,#f472b6,#a855f7);transform:translate(-44%,-34%) rotateX(8deg) rotateY(-14deg) rotateZ(-4deg) scale(.92);z-index:-1;opacity:.75;animation:bob 6s ease-in-out infinite reverse}
+@keyframes bob{50%{margin-top:-14px}}
+.fcard .top{display:flex;justify-content:space-between;align-items:center;font-weight:800;position:relative;z-index:1}
+.chip{width:46px;height:34px;border-radius:8px;background:linear-gradient(135deg,#fde68a,#f59e0b);margin-top:26px;position:relative;z-index:1}
+.fcard .num{font-family:var(--mono);font-size:20px;letter-spacing:3px;margin-top:22px;position:relative;z-index:1}
+.fcard .bot{display:flex;justify-content:space-between;margin-top:18px;font-size:12px;opacity:.9;position:relative;z-index:1}
+.float-badge{position:absolute;padding:12px 16px;border-radius:16px;background:rgba(13,19,48,.85);backdrop-filter:blur(14px);border:1px solid var(--card-b);font-weight:700;font-size:14px;display:flex;gap:10px;align-items:center;box-shadow:0 20px 40px rgba(0,0,0,.4);animation:bob 5s ease-in-out infinite}
+.fb1{top:6%;right:0}.fb2{bottom:6%;left:0;animation-delay:-2s}
+
+/* sections */
+section{padding:80px 0}
+.eyebrow{color:var(--accent2);font-weight:700;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+h2{font-size:clamp(30px,4vw,46px);letter-spacing:-1.5px;margin:12px 0 14px;line-height:1.1}
+.sub{color:var(--muted);font-size:17px;max-width:620px;line-height:1.6}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}
+.glass{background:var(--card);border:1px solid var(--card-b);border-radius:var(--radius);backdrop-filter:blur(14px)}
+.feat{padding:30px;transition:.3s}
+.feat:hover{transform:translateY(-6px);border-color:rgba(124,92,255,.6);background:rgba(255,255,255,.08)}
+.ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:26px;margin-bottom:20px;background:rgba(124,92,255,.18)}
+.feat h3{font-size:20px;margin-bottom:10px}
+.feat p{color:var(--muted);line-height:1.6;font-size:15px}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:46px}
+.tier{padding:34px;position:relative;overflow:hidden}
+.tier.pop{border-color:rgba(124,92,255,.7);background:linear-gradient(180deg,rgba(124,92,255,.22),rgba(255,255,255,.04))}
+.tier .mult{font-size:54px;font-weight:800;letter-spacing:-2px;margin:14px 0 4px}
+.tier ul{list-style:none;margin-top:18px;color:var(--muted);display:grid;gap:10px;font-size:15px}
+.tier li::before{content:"✓ ";color:var(--mint);font-weight:800}
+.tag{position:absolute;top:18px;right:18px;padding:5px 12px;border-radius:99px;background:var(--grad);color:#06091a;font-size:11px;font-weight:800}
+footer{border-top:1px solid var(--card-b);padding:40px 0;color:var(--muted);font-size:14px;text-align:center}
+
+/* modal */
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(3,5,15,.7);backdrop-filter:blur(8px);display:grid;place-items:center;padding:20px;animation:fade .25s}
+@keyframes fade{from{opacity:0}}
+.modal{width:100%;max-width:430px;padding:34px;background:rgba(15,21,50,.95);border:1px solid var(--card-b);border-radius:28px;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:pop .3s cubic-bezier(.2,1.2,.4,1)}
+@keyframes pop{from{transform:scale(.92) translateY(14px);opacity:0}}
+.modal h3{font-size:26px;letter-spacing:-.8px}
+.tabs{display:flex;background:rgba(255,255,255,.06);padding:5px;border-radius:14px;margin:20px 0}
+.tabs button{flex:1;padding:10px;border-radius:10px;background:transparent;font-weight:700;color:var(--muted)}
+.tabs button.on{background:var(--grad);color:#06091a}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:14px 0 7px}
+input,select{width:100%;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--card-b);color:var(--text);font:inherit;font-size:15px;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(124,92,255,.2)}
+select option{background:#0d1330}
+.err{color:var(--danger);font-size:14px;margin-top:12px;min-height:20px}
+.hint{font-size:12px;color:var(--muted);margin-top:16px;line-height:1.6;padding:12px;border-radius:12px;background:rgba(255,255,255,.04)}
+.hint code{color:var(--accent2);font-family:var(--mono)}
+
+/* dashboard */
+#app{padding:34px 0 80px}
+.dash-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:20px;flex-wrap:wrap}
+.dash-head h2{margin:4px 0 0;font-size:34px}
+.dash-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:22px}
+.wallet-card{padding:34px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(124,92,255,.5),rgba(34,211,238,.25));border:1px solid rgba(255,255,255,.18)}
+.wallet-card::before{content:"";position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.12);right:-90px;top:-120px;filter:blur(20px)}
+.bal-label{color:rgba(255,255,255,.75);font-weight:600;font-size:14px}
+.bal{font-size:clamp(44px,7vw,68px);font-weight:800;letter-spacing:-3px;margin:8px 0 22px;font-variant-numeric:tabular-nums}
+.bal small{font-size:.5em;opacity:.7;letter-spacing:0}
+.wallet-foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:relative;z-index:1}
+.tier-badge{padding:8px 14px;border-radius:99px;background:rgba(0,0,0,.28);font-weight:800;font-size:13px;border:1px solid rgba(255,255,255,.2)}
+.panel{padding:28px}
+.panel h3{font-size:18px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+.panel h3 span{font-size:13px;color:var(--muted);font-weight:600}
+.merchants{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mchip{padding:14px 8px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid var(--card-b);text-align:center;transition:.2s;font-size:13px;font-weight:600}
+.mchip:hover{background:rgba(255,255,255,.1)}
+.mchip.sel{border-color:var(--accent);background:rgba(124,92,255,.22);box-shadow:0 0 0 3px rgba(124,92,255,.2)}
+.mchip .e{font-size:26px;display:block;margin-bottom:6px}
+.mchip small{display:block;color:var(--mint);font-size:11px;margin-top:3px}
+.amount-row{display:flex;gap:10px;margin-top:18px}
+.amount-row input{font-family:var(--mono);font-size:18px;font-weight:700}
+.preview{margin-top:14px;padding:14px 16px;border-radius:14px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:#a7f3d0;font-weight:600;font-size:14px;min-height:50px;display:flex;align-items:center;gap:8px}
+.cats{display:grid;gap:18px}
+.cat-top{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:8px}
+.cat-top span:last-child{color:var(--muted);font-family:var(--mono);font-size:13px}
+.bar{height:10px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--grad);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.bar i.full{background:linear-gradient(90deg,var(--amber),var(--pink))}
+.txns{display:grid;gap:4px;max-height:430px;overflow:auto;padding-right:4px}
+.txn{display:grid;grid-template-columns:46px 1fr auto;gap:14px;align-items:center;padding:12px;border-radius:16px;transition:.2s}
+.txn:hover{background:rgba(255,255,255,.05)}
+.txn .ti{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:22px}
+.txn b{display:block;font-size:15px}.txn small{color:var(--muted);font-size:12px}
+.txn .amt{text-align:right;font-family:var(--mono);font-weight:700;font-size:15px}
+.txn .amt small{display:block;color:var(--mint);font-family:var(--font);font-weight:600}
+.plus{color:var(--mint)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+.kpi{padding:22px}.kpi span{color:var(--muted);font-size:13px;font-weight:600}.kpi b{display:block;font-size:26px;margin-top:8px;letter-spacing:-1px}
+.wide{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--muted);font-weight:600;padding:10px 12px;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+td{padding:12px;border-top:1px solid var(--card-b)}
+td.mono{font-family:var(--mono);font-size:13px}
+.pill-sm{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;background:rgba(124,92,255,.25)}
+.rule-in{width:100px;padding:8px 10px;font-size:13px}
+.btn-sm{padding:8px 14px;font-size:13px;border-radius:10px}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:200;display:grid;gap:10px}
+.toast{padding:16px 20px;border-radius:16px;background:rgba(15,21,50,.96);border:1px solid var(--card-b);font-weight:600;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:pop .3s;max-width:340px}
+.toast.ok{border-color:rgba(52,211,153,.6)}.toast.bad{border-color:rgba(251,113,133,.7)}
+.confetti{position:fixed;top:-10px;width:10px;height:14px;z-index:300;pointer-events:none;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:0}}
+@media(max-width:900px){
+  .hero,.dash-grid{grid-template-columns:1fr}.features,.tiers{grid-template-columns:1fr}.nav-links{display:none}
+  .kpis{grid-template-columns:1fr 1fr}.card-stage{height:360px}.hero{padding-top:50px}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div><div class="blob b1"></div><div class="blob b2"></div>
+
+<nav><div class="container nav-in">
+  <a class="logo" href="#"><i>₹</i>FinPay</a>
+  <div class="nav-links" id="navLinks"><a href="#features">Features</a><a href="#tiers">Tiers</a><a href="#security">Security</a></div>
+  <div class="nav-right" id="navRight">
+    <button class="btn btn-ghost" onclick="openAuth('login')">Sign in</button>
+    <button class="btn btn-primary" onclick="openAuth('register')">Get started</button>
+  </div>
+</div></nav>
+
+<!-- LANDING -->
+<main id="landing">
+<div class="container">
+  <div class="hero">
+    <div>
+      <span class="pill"><b></b> Built for campus life · Exact to the paisa</span>
+      <h1>The campus wallet that <span class="grad-text">pays you back.</span></h1>
+      <p class="lead">Pay at the café, the bookstore and the metro. Earn tiered cashback on every purchase — calculated in pure integer paise, so every rupee adds up. Always.</p>
+      <div class="cta">
+        <button class="btn btn-primary btn-lg" onclick="openAuth('register')">Create free wallet →</button>
+        <button class="btn btn-ghost btn-lg" onclick="demoLogin()">Try the demo</button>
+      </div>
+      <div class="stats">
+        <div><b>Up to 12%</b><span>cashback on books</span></div>
+        <div><b>0 paise</b><span>rounding drift</span></div>
+        <div><b>1.5×</b><span>Premium multiplier</span></div>
+      </div>
+    </div>
+    <div class="card-stage">
+      <div class="fcard c2"></div>
+      <div class="fcard c1">
+        <div class="top"><span style="font-size:20px">FinPay</span><span>PRIME</span></div>
+        <div class="chip"></div>
+        <div class="num">•••• •••• •••• 2026</div>
+        <div class="bot"><span>AARAV SHARMA</span><span>CASHBACK 1.25×</span></div>
+      </div>
+      <div class="float-badge fb1"><span style="font-size:22px">☕</span><div>+₹9.25 cashback<br><small style="color:var(--mint)">Campus Café</small></div></div>
+      <div class="float-badge fb2"><span style="font-size:22px">🛡️</span><div>Duplicate blocked<br><small style="color:var(--accent2)">Idempotency key</small></div></div>
+    </div>
+  </div>
+</div>
+
+<section id="features"><div class="container">
+  <div class="eyebrow">Why FinPay</div>
+  <h2>Money software you can actually trust.</h2>
+  <p class="sub">Designed from a rigorous detailed design record — every decision reviewed, every edge case accounted for.</p>
+  <div class="features">
+    <div class="glass feat"><div class="ico">🧮</div><h3>Paise-exact maths</h3><p>No floating point, ever. Balances and cashback are 64-bit integers in paise, with floor truncation — 6.66 paise becomes 6.</p></div>
+    <div class="glass feat"><div class="ico">🔁</div><h3>Duplicate-proof payments</h3><p>Every payment carries a unique idempotency key. Tap twice or retry on a bad network — you're only ever charged once.</p></div>
+    <div class="glass feat"><div class="ico">🎯</div><h3>Monthly cashback caps</h3><p>Track your progress per category against transparent monthly caps, with a live preview before you pay.</p></div>
+    <div class="glass feat"><div class="ico">🔐</div><h3>HTTP-only sessions</h3><p>Signed JWTs live in HttpOnly, SameSite cookies — out of reach of injected scripts — with server-side role checks.</p></div>
+    <div class="glass feat"><div class="ico">🕵️</div><h3>Masked by design</h3><p>Coordinators see what they need and nothing more: contact details are masked in every admin response.</p></div>
+    <div class="glass feat"><div class="ico">📜</div><h3>Append-only audit trail</h3><p>Payments, top-ups, tier changes and rule edits are written to an immutable log for dispute resolution.</p></div>
+  </div>
+</div></section>
+
+<section id="tiers"><div class="container">
+  <div class="eyebrow">Wallet tiers</div>
+  <h2>The more you level up, the more you earn.</h2>
+  <div class="tiers">
+    <div class="glass tier"><b>BASIC</b><div class="mult grad-text">1.00×</div><span style="color:var(--muted)">Everyone starts here</span><ul><li>Base cashback on every category</li><li>Monthly caps per category</li><li>Instant wallet top-ups</li></ul></div>
+    <div class="glass tier pop"><span class="tag">POPULAR</span><b>PRIME</b><div class="mult grad-text">1.25×</div><span style="color:var(--muted)">+25% on every cashback</span><ul><li>Everything in Basic</li><li>Boosted rate on all merchants</li><li>Priority support</li></ul></div>
+    <div class="glass tier"><b>PREMIUM</b><div class="mult grad-text">1.50×</div><span style="color:var(--muted)">+50% on every cashback</span><ul><li>Everything in Prime</li><li>Maximum cashback multiplier</li><li>Early access to new merchants</li></ul></div>
+  </div>
+</div></section>
+
+<section id="security"><div class="container">
+  <div class="glass" style="padding:54px;text-align:center;background:linear-gradient(135deg,rgba(124,92,255,.22),rgba(34,211,238,.12))">
+    <h2 style="margin-top:0">Ready to make every rupee count?</h2>
+    <p class="sub" style="margin:0 auto 28px">Open your wallet in seconds and start earning cashback today.</p>
+    <button class="btn btn-primary btn-lg" onclick="openAuth('register')">Create free wallet →</button>
+  </div>
+</div></section>
+<footer>© 2026 FinPay · Java backend · HTML frontend · Money is stored in integer paise.</footer>
+</main>
+
+<!-- STUDENT DASHBOARD -->
+<main id="app" class="hidden"><div class="container" id="appBody"></div></main>
+
+<!-- AUTH MODAL -->
+<div class="overlay hidden" id="authOverlay" onclick="if(event.target===this)closeAuth()">
+  <div class="modal">
+    <h3 id="authTitle">Welcome back</h3>
+    <div class="tabs"><button id="tLogin" class="on" onclick="setTab('login')">Sign in</button><button id="tReg" onclick="setTab('register')">Create account</button></div>
+    <div id="regOnly" class="hidden">
+      <label>Full name</label><input id="fName" placeholder="Aarav Sharma" autocomplete="name">
+      <label>Phone (optional)</label><input id="fPhone" placeholder="10-digit mobile" inputmode="numeric" maxlength="10">
+    </div>
+    <label>Email</label><input id="fEmail" type="email" placeholder="you@college.edu" autocomplete="email">
+    <label>Password</label><input id="fPass" type="password" placeholder="At least 8 characters" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+    <div class="err" id="authErr"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:6px" id="authBtn" onclick="submitAuth()">Sign in</button>
+    <div class="hint" id="demoHint">Demo student: <code>aarav@college.edu</code> / <code>Student@123</code><br>Demo coordinator: <code>admin@finpay.edu</code> / <code>Admin@123</code></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr = p => '₹' + (p/100).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const toPaise = str => { // string → integer paise without floating-point maths
+  const m = String(str).trim().match(/^(\d{1,9})(?:\.(\d{1,2}))?$/); if(!m) return null;
+  return parseInt(m[1],10)*100 + parseInt((m[2]||'').padEnd(2,'0')||'0',10);
+};
+const CATNAMES = {FOOD:'Food & Drinks',GROCERY:'Groceries',TRAVEL:'Travel',BOOKS:'Books & Stationery',ENTERTAINMENT:'Entertainment'};
+let me=null, tab='login', merchants=[], selMerchant=null, pendingKey=null;
+
+async function api(path, opts={}){
+  const headers = {'Content-Type':'application/json', ...(opts.headers||{})};
+  const r = await fetch('/api'+path, {method:opts.method||'GET', headers, credentials:'same-origin', body:opts.body?JSON.stringify(opts.body):undefined});
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok){ const e = new Error(data.error||'Something went wrong'); e.status=r.status; throw e; }
+  return data;
+}
+function toast(msg, kind='ok'){
+  const t=document.createElement('div'); t.className='toast '+kind; t.textContent=msg; $('#toasts').append(t);
+  setTimeout(()=>t.remove(),4200);
+}
+function confetti(){
+  const cols=['#7c5cff','#22d3ee','#34d399','#f472b6','#fbbf24'];
+  for(let i=0;i<46;i++){const c=document.createElement('i');c.className='confetti';c.style.left=Math.random()*100+'vw';
+    c.style.background=cols[i%5];c.style.animationDelay=Math.random()*.4+'s';c.style.borderRadius=i%2?'50%':'2px';document.body.append(c);setTimeout(()=>c.remove(),2400);}
+}
+function countUp(el, to){
+  const from = Number(el.dataset.v||0); el.dataset.v = to; const t0=performance.now(), d=700;
+  (function f(t){ const k=Math.min(1,(t-t0)/d), e=1-Math.pow(1-k,3); el.innerHTML=fmtBal(Math.round(from+(to-from)*e)); if(k<1)requestAnimationFrame(f); })(t0);
+}
+const fmtBal = p => { const s=inr(p).split('.'); return s[0]+'<small>.'+s[1]+'</small>'; };
+
+/* ---------- auth ---------- */
+function openAuth(t){ setTab(t); $('#authOverlay').classList.remove('hidden'); setTimeout(()=>$('#fEmail').focus(),50); }
+function closeAuth(){ $('#authOverlay').classList.add('hidden'); $('#authErr').textContent=''; }
+function setTab(t){
+  tab=t; $('#tLogin').classList.toggle('on',t==='login'); $('#tReg').classList.toggle('on',t==='register');
+  $('#regOnly').classList.toggle('hidden',t==='login');
+  $('#authTitle').textContent = t==='login' ? 'Welcome back' : 'Create your wallet';
+  $('#authBtn').textContent = t==='login' ? 'Sign in' : 'Create account';
+  $('#demoHint').classList.toggle('hidden',t!=='login'); $('#authErr').textContent='';
+}
+async function submitAuth(){
+  const btn=$('#authBtn'); btn.disabled=true;
+  try{
+    const body={email:$('#fEmail').value,password:$('#fPass').value};
+    if(tab==='register'){ body.fullName=$('#fName').value; body.phone=$('#fPhone').value; }
+    me = await api(tab==='login'?'/auth/login':'/auth/register',{method:'POST',body});
+    closeAuth(); $('#fPass').value=''; await enterApp(); toast('Welcome, '+me.fullName.split(' ')[0]+'!');
+  }catch(e){ $('#authErr').textContent=e.message; } finally{ btn.disabled=false; }
+}
+async function demoLogin(){ openAuth('login'); $('#fEmail').value='aarav@college.edu'; $('#fPass').value='Student@123'; }
+async function logout(){ await api('/auth/logout',{method:'POST'}); me=null; location.hash=''; showLanding(); }
+
+function showLanding(){
+  $('#landing').classList.remove('hidden'); $('#app').classList.add('hidden'); $('#navLinks').classList.remove('hidden');
+  $('#navRight').innerHTML='<button class="btn btn-ghost" onclick="openAuth(\'login\')">Sign in</button><button class="btn btn-primary" onclick="openAuth(\'register\')">Get started</button>';
+}
+async function enterApp(){
+  $('#landing').classList.add('hidden'); $('#app').classList.remove('hidden'); $('#navLinks').classList.add('hidden');
+  $('#navRight').innerHTML=`<span style="color:var(--muted);font-weight:600;font-size:14px">${esc(me.fullName)} <span class="pill-sm">${me.role}</span></span><button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>`;
+  window.scrollTo(0,0);
+  me.role==='ADMIN' ? await renderAdmin() : await renderStudent();
+}
+
+/* ---------- student ---------- */
+async function renderStudent(){
+  $('#appBody').innerHTML=`
+  <div class="dash-head"><div><div class="eyebrow">Your wallet</div><h2>Hey ${esc(me.fullName.split(' ')[0])} 👋</h2></div></div>
+  <div class="dash-grid">
+    <div class="glass wallet-card"><div class="bal-label">Available balance</div><div class="bal" id="bal" data-v="0">₹0<small>.00</small></div>
+      <div class="wallet-foot"><span class="tier-badge" id="tierBadge">BASIC · 1.00×</span>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.2);backdrop-filter:blur(6px)" onclick="topUp()">+ Add money</button>
+        <span id="lifetime" style="font-size:13px;opacity:.8"></span></div></div>
+    <div class="glass panel"><h3>Pay a merchant <span>live cashback preview</span></h3>
+      <div class="merchants" id="mgrid"></div>
+      <div class="amount-row"><input id="amt" inputmode="decimal" placeholder="Amount in ₹  (e.g. 185.50)" oninput="doPreview()"><button class="btn btn-primary" id="payBtn" onclick="doPay()">Pay</button></div>
+      <div class="preview" id="prev">Pick a merchant and enter an amount ✨</div></div>
+    <div class="glass panel"><h3>Monthly cashback <span id="mon"></span></h3><div class="cats" id="cats"></div></div>
+    <div class="glass panel"><h3>Recent activity</h3><div class="txns" id="txns"></div></div>
+  </div>`;
+  merchants = await api('/merchants'); selMerchant = null;
+  $('#mgrid').innerHTML = merchants.filter(m=>m.category!=='TOPUP').map(m=>
+    `<button class="mchip" data-id="${m.id}" onclick="pick(${m.id})"><span class="e">${m.icon}</span>${esc(m.name)}<small>${(m.rateBp/100).toFixed(0)}% base</small></button>`).join('');
+  await refresh();
+}
+async function refresh(){
+  const [w,t,s] = await Promise.all([api('/wallet'),api('/transactions'),api('/cashback/summary')]);
+  countUp($('#bal'), w.balanceInPaise);
+  $('#tierBadge').textContent = `${w.tier} · ${(w.tierMultiplierPercent/100).toFixed(2)}×`;
+  $('#lifetime').textContent = 'Lifetime cashback '+inr(s.totalCashbackInPaise);
+  $('#mon').textContent = s.month;
+  $('#cats').innerHTML = s.categories.map(c=>{
+    const pct = c.capInPaise ? Math.min(100, c.earnedInPaise*100/c.capInPaise) : 0;
+    return `<div><div class="cat-top"><span>${CATNAMES[c.category]||c.category}</span><span>${inr(c.earnedInPaise)} / ${inr(c.capInPaise)}</span></div>
+      <div class="bar"><i class="${pct>=100?'full':''}" style="width:0" data-w="${pct}"></i></div></div>`; }).join('');
+  requestAnimationFrame(()=>document.querySelectorAll('.bar i').forEach(b=>b.style.width=b.dataset.w+'%'));
+  $('#txns').innerHTML = t.length ? t.map(x=>{
+    const topup = x.type==='TOPUP', d = new Date(x.timestamp);
+    return `<div class="txn"><div class="ti">${x.icon}</div><div><b>${esc(x.merchant)}</b><small>${d.toLocaleDateString('en-IN',{day:'numeric',month:'short'})} · ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</small></div>
+      <div class="amt ${topup?'plus':''}">${topup?'+':'−'}${inr(x.amountInPaise)}${x.cashbackInPaise?`<small>+${inr(x.cashbackInPaise)} back</small>`:''}</div></div>`; }).join('')
+    : '<div style="color:var(--muted);padding:20px">No transactions yet.</div>';
+}
+function pick(id){ selMerchant=id; document.querySelectorAll('.mchip').forEach(c=>c.classList.toggle('sel',Number(c.dataset.id)===id)); doPreview(); }
+let pvT; function doPreview(){
+  clearTimeout(pvT); pvT=setTimeout(async()=>{
+    const p = toPaise($('#amt').value); const box=$('#prev');
+    if(!selMerchant||!p||p<=0){ box.textContent='Pick a merchant and enter an amount ✨'; return; }
+    try{ const r = await api('/cashback/preview',{method:'POST',body:{merchantId:selMerchant,amountInPaise:p}});
+      box.innerHTML = r.cashbackInPaise>0 ? `🎁 You'll earn <b>${inr(r.cashbackInPaise)}</b> cashback${r.capped?' (monthly cap reached — '+inr(r.rawInPaise)+' before cap)':''}` : '🙂 No cashback available for this payment (cap reached or amount too small)';
+    }catch(e){ box.textContent=e.message; }
+  },180);
+}
+async function doPay(){
+  const p = toPaise($('#amt').value);
+  if(!selMerchant) return toast('Choose a merchant first','bad');
+  if(!p||p<=0) return toast('Enter a valid amount like 185.50','bad');
+  const btn=$('#payBtn'); btn.disabled=true;
+  pendingKey = pendingKey || crypto.randomUUID();           // one key per payment attempt → safe retries
+  try{
+    const r = await api('/pay',{method:'POST',headers:{'Idempotency-Key':pendingKey},body:{merchantId:selMerchant,amountInPaise:p}});
+    pendingKey=null; $('#amt').value=''; $('#prev').textContent='Pick a merchant and enter an amount ✨';
+    const cb=r.transaction.cashbackInPaise; toast(`Paid ${inr(p)}${cb?` · earned ${inr(cb)} cashback 🎉`:''}`); if(cb) confetti();
+    await refresh();
+  }catch(e){ if(e.status && e.status<500) pendingKey=null; toast(e.message,'bad'); } finally{ btn.disabled=false; }
+}
+async function topUp(){
+  const v = prompt('Amount to add (₹):','500'); if(v===null) return;
+  const p = toPaise(v); if(!p||p<=0) return toast('Enter a valid amount','bad');
+  try{ await api('/wallet/topup',{method:'POST',headers:{'Idempotency-Key':crypto.randomUUID()},body:{amountInPaise:p}}); toast(inr(p)+' added to your wallet'); await refresh(); }
+  catch(e){ toast(e.message,'bad'); }
+}
+
+/* ---------- admin ---------- */
+async function renderAdmin(){
+  const [o,rules,audit] = await Promise.all([api('/admin/overview'),api('/admin/rules'),api('/admin/audit')]);
+  $('#appBody').innerHTML=`
+  <div class="dash-head"><div><div class="eyebrow">Coordinator console</div><h2>Platform overview</h2></div></div>
+  <div class="kpis">
+    <div class="glass kpi"><span>Wallet float</span><b>${inr(o.walletFloatInPaise)}</b></div>
+    <div class="glass kpi"><span>Payment volume</span><b>${inr(o.paymentVolumeInPaise)}</b></div>
+    <div class="glass kpi"><span>Cashback issued</span><b class="plus">${inr(o.cashbackIssuedInPaise)}</b></div>
+    <div class="glass kpi"><span>Transactions</span><b>${o.transactionCount}</b></div>
+  </div>
+  <div class="dash-grid">
+    <div class="glass panel"><h3>Students <span>contact data masked</span></h3><table><tr><th>Name</th><th>Email</th><th>Tier</th><th>Balance</th></tr>
+      ${o.students.map(s=>`<tr><td>${esc(s.name)}</td><td class="mono">${esc(s.email)}</td>
+      <td><select onchange="setTier(${s.id},this.value)" style="padding:6px 8px;width:auto;font-size:13px">${['BASIC','PRIME','PREMIUM'].map(t=>`<option ${t===s.tier?'selected':''}>${t}</option>`).join('')}</select></td>
+      <td class="mono">${inr(s.balanceInPaise)}</td></tr>`).join('')}</table></div>
+    <div class="glass panel"><h3>Cashback rules <span>rate in % · cap in ₹</span></h3><table><tr><th>Category</th><th>Rate %</th><th>Cap ₹</th><th></th></tr>
+      ${rules.filter(r=>r.category!=='TOPUP').map(r=>`<tr><td>${CATNAMES[r.category]||r.category}</td>
+      <td><input class="rule-in" id="r-${r.category}" value="${(r.rateBp/100).toFixed(2)}"></td>
+      <td><input class="rule-in" id="c-${r.category}" value="${(r.capInPaise/100).toFixed(2)}"></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="saveRule('${r.category}')">Save</button></td></tr>`).join('')}</table></div>
+    <div class="glass panel wide"><h3>Audit log <span>append-only</span></h3><div style="overflow:auto;max-height:380px"><table><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Detail</th></tr>
+      ${audit.map(a=>`<tr><td class="mono">${new Date(a.timestamp).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td><td>${esc(a.actor)}</td><td><span class="pill-sm">${esc(a.action)}</span></td><td class="mono">${esc(a.entity)}</td><td style="color:var(--muted)">${esc(a.detail)}</td></tr>`).join('')}</table></div></div>
+  </div>`;
+}
+async function setTier(id,tier){ try{ await api(`/admin/students/${id}/tier`,{method:'PUT',body:{tier}}); toast('Tier updated'); renderAdmin(); }catch(e){ toast(e.message,'bad'); } }
+async function saveRule(cat){
+  const rate = toPaise($('#r-'+cat).value), cap = toPaise($('#c-'+cat).value);
+  if(rate===null||cap===null) return toast('Enter valid numbers','bad');
+  try{ await api('/admin/rules',{method:'PUT',body:{category:cat,rateBp:rate,capInPaise:cap}}); toast('Rule saved'); renderAdmin(); }catch(e){ toast(e.message,'bad'); }
+}
+
+/* ---------- boot ---------- */
+(async()=>{ try{ me = await api('/me'); await enterApp(); }catch(e){ showLanding(); } })();
+</script>
+</body>
+</html>
