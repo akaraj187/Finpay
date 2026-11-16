@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💸 FinPay
+#  FinPay
 
 ### The campus wallet that pays you back
 
